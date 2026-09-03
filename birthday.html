@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday, Bhargavi!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #0d0a0f;
+    --curtain-dark: #3a0d16;
+    --curtain-light: #7a1f2b;
+    --gold: #e8b33d;
+    --cream: #f6ecdd;
+    --glow: #ff5a3c;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html, body{
+    height:100%;
+    background: var(--ink);
+    font-family:'Poppins', sans-serif;
+    color: var(--cream);
+    overflow-x:hidden;
+  }
+
+  #stage{
+    position:relative;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 32px 20px;
+    text-align:center;
+  }
+
+  .lights{
+    position:fixed;
+    top:0; left:0; width:100%;
+    height:60px;
+    z-index:2;
+    pointer-events:none;
+  }
+  .wire{
+    position:absolute;
+    top:0; left:0; width:100%; height:60px;
+  }
+  .bulb{
+    position:absolute;
+    top:0;
+    width:9px; height:9px;
+    border-radius:50%;
+    background: #4a3a1a;
+    transform: translate(-50%, -50%);
+    opacity:0.5;
+    transition: background 0.4s ease, box-shadow 0.4s ease;
+  }
+  .bulb.lit{
+    background: var(--gold);
+    box-shadow: 0 0 10px 4px rgba(232,179,61,0.75);
+    opacity:1;
+    animation: bulbflicker 2.6s ease-in-out infinite;
+  }
+  .bulb.lit:nth-child(3n){ animation-delay: 0.4s; }
+  .bulb.lit:nth-child(3n+1){ animation-delay: 0.9s; }
+  @keyframes bulbflicker{ 0%,100%{filter:brightness(1);} 50%{filter:brightness(1.35);} }
+
+  .spotlight{
+    position:fixed;
+    top:-20%; left:50%;
+    transform: translateX(-50%);
+    width: 140vw; height: 90vh;
+    background: radial-gradient(ellipse at 50% 0%, rgba(232,179,61,0.22), rgba(232,179,61,0) 60%);
+    opacity:0;
+    transition: opacity 1.6s ease;
+    z-index:1;
+    pointer-events:none;
+  }
+  .spotlight.on{ opacity:1; }
+
+  .curtain-bg{
+    position:fixed; inset:0;
+    background: repeating-linear-gradient(90deg,
+      var(--curtain-dark) 0 34px,
+      var(--curtain-light) 34px 68px);
+    opacity:0;
+    transition: opacity 1.2s ease;
+    z-index:0;
+  }
+  .curtain-bg.on{ opacity:1; }
+  .curtain-bg.on::before{
+    content:'';
+    position:absolute; inset:0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 90%);
+  }
+
+  .panel{
+    position:relative;
+    z-index:3;
+    max-width: 380px;
+    width:100%;
+  }
+
+  .step{ display:none; }
+  .step.active{ display:block; animation: fadein 0.6s ease; }
+  @keyframes fadein{ from{opacity:0; transform: translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+  .eyebrow{
+    font-size:13px;
+    letter-spacing:0.04em;
+    color: var(--gold);
+    margin-bottom:10px;
+    opacity:0.85;
+  }
+
+  h1{
+    font-family:'Playfair Display', serif;
+    font-weight:700;
+    font-size: clamp(32px, 8vw, 44px);
+    line-height:1.1;
+    margin-bottom:10px;
+  }
+  h1 em{
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .tagline{
+    font-size:14px;
+    color: var(--cream);
+    opacity:0.7;
+    margin-bottom:30px;
+  }
+
+  .card{
+    background: rgba(20,14,18,0.7);
+    border: 1px solid rgba(232,179,61,0.25);
+    border-radius: 16px;
+    padding: 34px 26px;
+    backdrop-filter: blur(4px);
+  }
+
+  .card p{
+    font-family:'Playfair Display', serif;
+    font-size: 18px;
+    margin-bottom: 22px;
+    line-height:1.5;
+  }
+
+  .glow-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background: transparent;
+    border: 1.5px solid var(--glow);
+    color: var(--cream);
+    font-family:'Poppins', sans-serif;
+    font-weight:500;
+    font-size: 14px;
+    letter-spacing:0.03em;
+    padding: 12px 26px;
+    border-radius: 30px;
+    cursor:pointer;
+    box-shadow: 0 0 14px rgba(255,90,60,0.45);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  }
+  .glow-btn:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 0 22px rgba(255,90,60,0.7);
+  }
+  .glow-btn:active{ transform: translateY(0); }
+  .glow-btn:disabled{
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .wait-msg{
+    display:block;
+    margin-top: 14px;
+    font-family:'Playfair Display', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--gold);
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+    transition: opacity 0.5s ease;
+  }
+  .wait-msg.show{
+    opacity: 0.85;
+    height: auto;
+  }
+
+  .balloon-layer{
+    position:fixed; inset:0;
+    z-index:1;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .balloon{
+    position:absolute;
+    bottom:-140px;
+    width:48px; height:60px;
+    border-radius: 50% 50% 50% 50% / 58% 58% 42% 42%;
+    animation: rise linear forwards, wobble 3.2s ease-in-out infinite;
+    box-shadow:
+      inset -6px -10px 14px rgba(0,0,0,0.25),
+      inset 6px 8px 10px rgba(255,255,255,0.35),
+      0 6px 16px rgba(0,0,0,0.25);
+  }
+  .balloon::before{
+    content:'';
+    position:absolute;
+    top:14%; left:22%;
+    width:34%; height:22%;
+    background: rgba(255,255,255,0.55);
+    border-radius:50%;
+    filter: blur(1px);
+    transform: rotate(-25deg);
+  }
+  .balloon::after{
+    content:'';
+    position:absolute;
+    left:50%; bottom:-6px;
+    width:0; height:0;
+    border-left:4px solid transparent;
+    border-right:4px solid transparent;
+    border-top:6px solid currentColor;
+    transform: translateX(-50%);
+  }
+  .string{
+    position:absolute;
+    left:50%; bottom:-34px;
+    width:1px; height:34px;
+    background: rgba(255,255,255,0.3);
+    transform: translateX(-50%);
+  }
+  @keyframes rise{
+    to{ transform: translateY(-125vh) translateX(var(--drift, 0px)); opacity:0.95; }
+  }
+  @keyframes wobble{
+    0%,100%{ margin-left:0; }
+    50%{ margin-left: 10px; }
+  }
+
+  .nickname-step .card{
+    padding: 44px 26px;
+  }
+  .nickname-word{
+    font-family:'Playfair Display', serif;
+    font-style: italic;
+    font-weight:700;
+    font-size: 42px;
+    color: var(--gold);
+    margin-bottom: 18px;
+    text-shadow: 0 0 18px rgba(232,179,61,0.4);
+  }
+  .nickname-step .card p{
+    font-size: 16px;
+    opacity: 0.92;
+  }
+
+  .message-card h2{
+    font-family:'Playfair Display', serif;
+    font-style: italic;
+    color: var(--gold);
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+  .message-card p{
+    font-family:'Poppins', sans-serif;
+    font-size: 14.5px;
+    line-height:1.75;
+    opacity:0.92;
+    text-align:left;
+    margin-bottom: 18px;
+  }
+  .message-card p.signoff{
+    font-family:'Playfair Display', serif;
+    font-style: italic;
+    text-align:center;
+    font-size: 15px;
+    margin-top: 6px;
+    color: var(--gold);
+    opacity: 1;
+  }
+
+  .gallery-wrap{ max-width: 460px; }
+  .gallery-title{
+    font-family:'Playfair Display', serif;
+    font-style: italic;
+    color: var(--gold);
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .slot{
+    aspect-ratio: 1;
+    border-radius: 10px;
+    background: linear-gradient(160deg, #2a1c22, #1c1216);
+    border: 1px solid rgba(232,179,61,0.2);
+    position:relative;
+    overflow:hidden;
+    cursor:pointer;
+  }
+  .slot img{
+    width:100%; height:100%;
+    object-fit:cover;
+    display:none;
+  }
+  .slot.filled img{ display:block; }
+  .slot.filled .plus{ display:none; }
+  .plus{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--gold);
+    font-size: 22px;
+    opacity:0.55;
+  }
+  .slot input{ display:none; }
+
+  .caption{
+    position:absolute; inset:0;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    padding: 8px 6px;
+    text-align:center;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,0.75) 100%);
+    opacity:0;
+    transition: opacity 0.3s ease;
+    font-size: 11px;
+    line-height:1.3;
+    color: var(--cream);
+  }
+  .slot.filled:hover .caption,
+  .slot.filled.show-caption .caption{ opacity:1; }
+
+  .final-note{
+    font-family:'Playfair Display', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--cream);
+    opacity:0.8;
+  }
+
+  .heart-layer{
+    position:fixed; inset:0;
+    z-index:1;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .heart{
+    position:absolute;
+    bottom:-30px;
+    color: #e0344a;
+    font-size: 14px;
+    opacity:0;
+    animation: heartRise linear forwards;
+  }
+  @keyframes heartRise{
+    0%{ opacity:0; transform: translateY(0) translateX(0) scale(0.8); }
+    10%{ opacity:0.85; }
+    80%{ opacity:0.6; }
+    100%{ opacity:0; transform: translateY(-105vh) translateX(var(--hdrift, 0px)) scale(1.1); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .balloon{ animation: none; display:none; }
+    .bulb{ animation:none; }
+    .heart{ animation:none; display:none; }
+  }
+</style>
+</head>
+<body>
+
+<audio id="birthdaySong" loop>
+  <source src="music.mp3" type="audio/mpeg">
+</audio>
+
+<div class="curtain-bg" id="curtainBg"></div>
+<div class="spotlight" id="spotlight"></div>
+<div class="lights" id="lights"></div>
+<div class="balloon-layer" id="balloonLayer"></div>
+<div class="heart-layer" id="heartLayer"></div>
+
+<div id="stage">
+  <div class="panel">
+
+    <div class="step active" data-step="0">
+      <div class="eyebrow">a little something for my "oye"</div>
+      <h1>Happy Birthday,<br><em>Bhargavi</em></h1>
+      <p class="tagline">a small journey, made just for you</p>
+      <button class="glow-btn" data-action="start"
+      onclick="playSong();next()">Open Your Gift</button>
+      <div class="wait-msg">turning up the music for you...</div>
+    </div>
+
+    <div class="step" data-step="1">
+      <div class="card">
+        <p>Second year, one classroom — and somehow you were the only girl brave enough to put up with all of us. Still think it was the best thing that happened to our class.</p>
+        <button class="glow-btn" data-action="next" onclick="next()">Next</button>
+        <div class="wait-msg">just a heartbeat, let it play...</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="2">
+      <div class="card">
+        <p>From sneaking out to chill between classes, to cramming together the night before every exam — some of my favorite college memories have you in every single one.</p>
+        <button class="glow-btn" data-action="next" onclick="next()">Next</button>
+        <div class="wait-msg">soaking in the moment...</div>
+      </div>
+    </div>
+
+    <div class="step nickname-step" data-step="3">
+      <div class="card">
+        <div class="nickname-word">"Oye."</div>
+        <p>That's still the only word that gets your attention, isn't it? Some things about us never change — and honestly, I hope they never do.</p>
+        <button class="glow-btn" data-action="next" onclick="next()">Continue</button>
+        <div class="wait-msg">some things never change...</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="4">
+      <div class="card">
+        <p>The stage is set, oye — the same way you always managed to light up even our dullest exam-week nights without even trying.</p>
+        <button class="glow-btn" data-action="next" onclick="turnOnLights()">Turn On Lights</button>
+        <div class="wait-msg">the crew is dimming the room...</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="5">
+      <div class="card">
+        <p>Ready for your surprise? After everything we've walked through together since second year, you deserve every bit of it — and more.</p>
+        <button class="glow-btn" data-action="next" onclick="next()">Let's Go</button>
+        <div class="wait-msg">hold on to that smile...</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="6">
+      <div class="card">
+        <p>Let the colors fly — just like the chaos and color you always brought into our college days.</p>
+        <button class="glow-btn" data-action="next" onclick="flyBalloons()">Fly Balloons</button>
+        <div class="wait-msg">balloons are being tied up...</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="7">
+      <div class="card">
+        <p>Almost there, oye. Just a few more seconds before I finally say everything I've been meaning to say.</p>
+        <button class="glow-btn" data-action="next" onclick="next()">✦ Show The Message</button>
+        <div class="wait-msg">gathering the right words...</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="8">
+      <div class="card message-card">
+        <h2>My Dearest Oye,</h2>
+        <p>Second year, one classroom, and you — the only girl who ever managed to handle the rest of us. That was, without a doubt, the best thing that happened to our class.</p>
+        <p>From skipping out to go chill between lectures, to cramming together right before every exam, those days built something that's stayed with me ever since.</p>
+        <p>I still remember our last semester — dropping you off, knowing you were leaving for home for good, and not being able to hold back the tears. That's still one of the most honest moments I've ever had.</p>
+        <p>And now here you are, about to start a whole new chapter — a wedding of your own on the horizon. I couldn't be happier for you. Genuinely, fully happier. Whatever comes next, I hope it brings you even a fraction of the joy you've brought into mine.</p>
+        <p class="signoff">Happy Birthday, Oye. Here's to everything ahead of you. 💛</p>
+        <button class="glow-btn" data-action="next" onclick="next()">Our Memories</button>
+        <div class="wait-msg">let that sink in for a second...</div>
+      </div>
+    </div>
+
+    <div class="step" data-step="9">
+      <div class="gallery-wrap">
+        <div class="gallery-title">Moments in Time</div>
+        <div class="grid" id="grid"></div>
+        <div class="final-note">Always & Forever 🎂</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let current = 0;
+  const totalSteps = 10;
+
+  // ---- Delay settings ----
+  // How many seconds each step's button stays disabled after the step appears,
+  // giving the music time to play before the visitor can rush ahead.
+  const STEP_DELAY_SECONDS = 5;
+
+  function showStep(n){
+    document.querySelectorAll('.step').forEach(s=>{
+      s.classList.toggle('active', parseInt(s.dataset.step) === n);
+    });
+    lockCurrentStepButton();
+  }
+
+  // Disables the button inside the newly active step, then re-enables it
+  // after STEP_DELAY_SECONDS, showing a small countdown on the button text
+  // and a themed waiting message beneath it.
+  function lockCurrentStepButton(){
+    const activeStep = document.querySelector('.step.active');
+    if(!activeStep) return;
+    const btn = activeStep.querySelector('button[data-action]');
+    const msgEl = activeStep.querySelector('.wait-msg');
+    if(!btn) return;
+
+    const originalText = btn.dataset.originalText || btn.textContent;
+    btn.dataset.originalText = originalText;
+
+    let remaining = STEP_DELAY_SECONDS;
+    btn.disabled = true;
+    btn.textContent = `${originalText} (${remaining}s)`;
+    if(msgEl) msgEl.classList.add('show');
+
+    const timer = setInterval(()=>{
+      remaining--;
+      if(remaining <= 0){
+        clearInterval(timer);
+        btn.disabled = false;
+        btn.textContent = originalText;
+        if(msgEl) msgEl.classList.remove('show');
+      } else {
+        btn.textContent = `${originalText} (${remaining}s)`;
+      }
+    }, 1000);
+  }
+
+  function next(){
+    if(current < totalSteps - 1){
+      current++;
+      showStep(current);
+    }
+  }
+
+  function turnOnLights(){
+    document.getElementById('curtainBg').classList.add('on');
+    document.getElementById('spotlight').classList.add('on');
+    const bulbs = document.querySelectorAll('.bulb');
+    bulbs.forEach((bulb, i)=>{
+      setTimeout(()=>bulb.classList.add('lit'), i * 45);
+    });
+    next();
+  }
+
+  function flyBalloons(){
+    const layer = document.getElementById('balloonLayer');
+    const palettes = [
+      ['#ffdf8f','#e8b33d','#a9760f'],
+      ['#ff9a80','#ff5a3c','#b8321a'],
+      ['#f9d9d6','#d98b87','#8f4642'],
+      ['#c9414a','#8f1f27','#5c0f14'],
+      ['#a8d8cc','#5f9d8d','#356355'],
+      ['#e6c8ea','#b070c2','#6e3b7e']
+    ];
+    for(let i=0;i<20;i++){
+      const b = document.createElement('div');
+      b.className = 'balloon';
+      const left = Math.random()*100;
+      const size = 40 + Math.random()*26;
+      const dur = 8 + Math.random()*6;
+      const delay = Math.random()*2.5;
+      const drift = (Math.random()*90 - 45) + 'px';
+      const [light, base, dark] = palettes[Math.floor(Math.random()*palettes.length)];
+      b.style.left = left + '%';
+      b.style.width = size + 'px';
+      b.style.height = (size*1.25) + 'px';
+      b.style.background = `radial-gradient(circle at 32% 28%, ${light}, ${base} 55%, ${dark} 100%)`;
+      b.style.color = dark;
+      b.style.setProperty('--drift', drift);
+      b.style.animationDuration = `${dur}s, 3.2s`;
+      b.style.animationDelay = `${delay}s, ${delay}s`;
+      const string = document.createElement('div');
+      string.className = 'string';
+      b.appendChild(string);
+      layer.appendChild(b);
+      setTimeout(()=>b.remove(), (dur+delay)*1000 + 500);
+    }
+    next();
+  }
+
+  const captions = [
+    'Second year, one classroom — where it all started 💛',
+    'Skipping class just to go chill together',
+    'Cramming for exams, surviving on chai and each other',
+    'The last semester... and the hardest goodbye',
+    'Dropping you off, wishing that road was longer',
+    'Always & Forever, Oye 💛'
+  ];
+
+  const grid = document.getElementById('grid');
+  for(let i=0;i<6;i++){
+    const slot = document.createElement('label');
+    slot.className = 'slot';
+    slot.innerHTML = `
+      <div class="plus">+</div>
+      <img alt="memory" src="photo${i+1}.jpg">
+      <div class="caption">${captions[i]}</div>
+      <input type="file" accept="image/*">
+    `;
+    const input = slot.querySelector('input');
+    const img = slot.querySelector('img');
+
+    img.addEventListener('load', ()=> slot.classList.add('filled'));
+    img.addEventListener('error', ()=>{ img.removeAttribute('src'); });
+
+    input.addEventListener('change', (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev)=>{
+        img.src = ev.target.result;
+        slot.classList.add('filled');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    slot.addEventListener('click', (e)=>{
+      if(slot.classList.contains('filled')){
+        e.preventDefault();
+        slot.classList.toggle('show-caption');
+      }
+    });
+
+    grid.appendChild(slot);
+  }
+
+  const lightsEl = document.getElementById('lights');
+  const bulbCount = 30;
+  for(let i=0;i<bulbCount;i++){
+    const bulb = document.createElement('div');
+    bulb.className = 'bulb';
+    const x = (i/(bulbCount-1))*100;
+    const sag = Math.sin((i/(bulbCount-1))*Math.PI) * 22;
+    bulb.style.left = x + '%';
+    bulb.style.top = sag + 'px';
+    lightsEl.appendChild(bulb);
+  }
+
+  const heartLayer = document.getElementById('heartLayer');
+  function spawnHeart(){
+    const h = document.createElement('div');
+    h.className = 'heart';
+    h.textContent = '♥';
+    const left = Math.random()*100;
+    const size = 10 + Math.random()*14;
+    const dur = 6 + Math.random()*6;
+    const drift = (Math.random()*60 - 30) + 'px';
+    h.style.left = left + '%';
+    h.style.fontSize = size + 'px';
+    h.style.setProperty('--hdrift', drift);
+    h.style.animationDuration = dur + 's';
+    heartLayer.appendChild(h);
+    setTimeout(()=>h.remove(), dur*1000 + 300);
+  }
+  setInterval(spawnHeart, 500);
+  spawnHeart();
+  function playSong(){
+    document.getElementById('birthdaySong').play();
+  }
+</script>
+
+</body>
+</html>
