@@ -9,8 +9,8 @@
 <style>
   :root{
     --ink: #0d0a0f;
-    --curtain-dark: #3a0d16;
-    --curtain-light: #7a1f2b;
+    --curtain-dark: #0d0a12;
+    --curtain-mid: #1b1030;
     --gold: #e8b33d;
     --cream: #f6ecdd;
     --glow: #ff5a3c;
@@ -39,33 +39,38 @@
   .lights{
     position:fixed;
     top:0; left:0; width:100%;
-    height:60px;
+    height:80px;
     z-index:2;
     pointer-events:none;
+    opacity:0;
+    transition: opacity 1s ease;
   }
-  .wire{
+  .lights.on{ opacity:1; }
+  .wire-svg{
     position:absolute;
-    top:0; left:0; width:100%; height:60px;
+    top:0; left:0; width:100%; height:80px;
+  }
+  .light-row{
+    position:absolute;
+    top:0; left:0; width:100%; height:80px;
   }
   .bulb{
     position:absolute;
     top:0;
-    width:9px; height:9px;
+    width:11px; height:11px;
     border-radius:50%;
     background: #4a3a1a;
     transform: translate(-50%, -50%);
     opacity:0.5;
-    transition: background 0.4s ease, box-shadow 0.4s ease;
+    transition: background 0.5s ease, box-shadow 0.5s ease;
   }
   .bulb.lit{
-    background: var(--gold);
-    box-shadow: 0 0 10px 4px rgba(232,179,61,0.75);
     opacity:1;
-    animation: bulbflicker 2.6s ease-in-out infinite;
+    animation-name: bulbGlow;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
   }
-  .bulb.lit:nth-child(3n){ animation-delay: 0.4s; }
-  .bulb.lit:nth-child(3n+1){ animation-delay: 0.9s; }
-  @keyframes bulbflicker{ 0%,100%{filter:brightness(1);} 50%{filter:brightness(1.35);} }
+  @keyframes bulbGlow{ 0%,100%{ filter:brightness(1); opacity:0.7; } 50%{ filter:brightness(1.6); opacity:1; } }
 
   .spotlight{
     position:fixed;
@@ -80,11 +85,10 @@
   }
   .spotlight.on{ opacity:1; }
 
+  /* Background: dark bokeh-hearts sky instead of the striped curtain */
   .curtain-bg{
     position:fixed; inset:0;
-    background: repeating-linear-gradient(90deg,
-      var(--curtain-dark) 0 34px,
-      var(--curtain-light) 34px 68px);
+    background: radial-gradient(ellipse at 50% 25%, var(--curtain-mid) 0%, var(--curtain-dark) 55%, #05040a 100%);
     opacity:0;
     transition: opacity 1.2s ease;
     z-index:0;
@@ -93,7 +97,7 @@
   .curtain-bg.on::before{
     content:'';
     position:absolute; inset:0;
-    background: radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 90%);
+    background: radial-gradient(ellipse at 50% 15%, rgba(110,90,220,0.18) 0%, rgba(0,0,0,0) 65%);
   }
 
   .panel{
@@ -304,7 +308,7 @@
     margin-bottom: 20px;
   }
   .slot{
-    aspect-ratio: 1;
+    aspect-ratio: 3/4;
     border-radius: 10px;
     background: linear-gradient(160deg, #2a1c22, #1c1216);
     border: 1px solid rgba(232,179,61,0.2);
@@ -315,6 +319,7 @@
   .slot img{
     width:100%; height:100%;
     object-fit:cover;
+    object-position: center top;
     display:none;
   }
   .slot.filled img{ display:block; }
@@ -374,10 +379,49 @@
     100%{ opacity:0; transform: translateY(-105vh) translateX(var(--hdrift, 0px)) scale(1.1); }
   }
 
+  /* Bokeh-style blue/purple hearts, blurred and glowing, rising slowly like the reference photo */
+  .bokeh-heart{
+    position:absolute;
+    bottom:-70px;
+    opacity:0;
+    animation: bokehRise linear forwards, bokehPulse 3.4s ease-in-out infinite;
+  }
+  @keyframes bokehRise{
+    0%{ opacity:0; transform: translateY(0) translateX(0) scale(0.85); }
+    12%{ opacity:0.9; }
+    85%{ opacity:0.65; }
+    100%{ opacity:0; transform: translateY(-115vh) translateX(var(--bdrift, 0px)) scale(1.2); }
+  }
+  @keyframes bokehPulse{
+    0%,100%{ filter: blur(3px) brightness(1); }
+    50%{ filter: blur(4.5px) brightness(1.4); }
+  }
+
+  /* Twinkling stars scattered across the background */
+  .star-layer{
+    position:fixed; inset:0;
+    z-index:1;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .star{
+    position:absolute;
+    border-radius:50%;
+    background:#fdf6e3;
+    opacity:0;
+    animation: starTwinkle ease-in-out infinite;
+  }
+  @keyframes starTwinkle{
+    0%,100%{ opacity:0; }
+    50%{ opacity:1; }
+  }
+
   @media (prefers-reduced-motion: reduce){
     .balloon{ animation: none; display:none; }
     .bulb{ animation:none; }
     .heart{ animation:none; display:none; }
+    .bokeh-heart{ animation:none; display:none; }
+    .star{ animation:none; display:none; }
   }
 </style>
 </head>
@@ -389,9 +433,18 @@
 
 <div class="curtain-bg" id="curtainBg"></div>
 <div class="spotlight" id="spotlight"></div>
-<div class="lights" id="lights"></div>
+<div class="lights" id="lights">
+  <svg class="wire-svg" viewBox="0 0 400 80" preserveAspectRatio="none">
+    <path d="M0,10 Q100,46 200,16 Q300,46 400,10" stroke="rgba(232,179,61,0.22)" stroke-width="1" fill="none"/>
+    <path d="M0,26 Q100,58 200,30 Q300,58 400,26" stroke="rgba(232,179,61,0.18)" stroke-width="1" fill="none"/>
+  </svg>
+  <div class="light-row" id="lightsRow1"></div>
+  <div class="light-row" id="lightsRow2"></div>
+</div>
 <div class="balloon-layer" id="balloonLayer"></div>
 <div class="heart-layer" id="heartLayer"></div>
+<div class="heart-layer" id="bokehLayer"></div>
+<div class="star-layer" id="starLayer"></div>
 
 <div id="stage">
   <div class="panel">
@@ -407,7 +460,7 @@
 
     <div class="step" data-step="1">
       <div class="card">
-        <p>Second year, one classroom — and somehow you were the only girl brave enough to put up with all of us. Still think it was the best thing that happened to our class.</p>
+        <p>Second year, one classroom, one girl, where our friendship starts. Somehow you were the only girl brave enough to put up with all of us.</p>
         <button class="glow-btn" data-action="next" onclick="next()">Next</button>
         <div class="wait-msg">just a heartbeat, let it play...</div>
       </div>
@@ -415,7 +468,7 @@
 
     <div class="step" data-step="2">
       <div class="card">
-        <p>From sneaking out to chill between classes, to cramming together the night before every exam — some of my favorite college memories have you in every single one.</p>
+        <p>From sneaking out to chill between classes, to struggling together the night before every exam, some of my favorite college memories have you in every single one.</p>
         <button class="glow-btn" data-action="next" onclick="next()">Next</button>
         <div class="wait-msg">soaking in the moment...</div>
       </div>
@@ -424,7 +477,7 @@
     <div class="step nickname-step" data-step="3">
       <div class="card">
         <div class="nickname-word">"Oye."</div>
-        <p>That's still the only word that gets your attention, isn't it? Some things about us never change — and honestly, I hope they never do.</p>
+        <p>That's still the only word that gets your attention, isn't it? Some things about us never change, and honestly, I hope they never do.</p>
         <button class="glow-btn" data-action="next" onclick="next()">Continue</button>
         <div class="wait-msg">some things never change...</div>
       </div>
@@ -432,7 +485,7 @@
 
     <div class="step" data-step="4">
       <div class="card">
-        <p>The stage is set, oye — the same way you always managed to light up even our dullest exam-week nights without even trying.</p>
+        <p>The stage is set, oye, the same way you always managed to light up our friendship.</p>
         <button class="glow-btn" data-action="next" onclick="turnOnLights()">Turn On Lights</button>
         <div class="wait-msg">the crew is dimming the room...</div>
       </div>
@@ -440,7 +493,7 @@
 
     <div class="step" data-step="5">
       <div class="card">
-        <p>Ready for your surprise? After everything we've walked through together since second year, you deserve every bit of it — and more.</p>
+        <p>Ready for your surprise? After everything we've walked through together since second year, you deserve every bit of it, and more.</p>
         <button class="glow-btn" data-action="next" onclick="next()">Let's Go</button>
         <div class="wait-msg">hold on to that smile...</div>
       </div>
@@ -448,7 +501,7 @@
 
     <div class="step" data-step="6">
       <div class="card">
-        <p>Let the colors fly — just like the chaos and color you always brought into our college days.</p>
+        <p>Let the colors fly, just like the chaos and color you always brought into our college days.</p>
         <button class="glow-btn" data-action="next" onclick="flyBalloons()">Fly Balloons</button>
         <div class="wait-msg">balloons are being tied up...</div>
       </div>
@@ -465,10 +518,10 @@
     <div class="step" data-step="8">
       <div class="card message-card">
         <h2>My Dearest Oye,</h2>
-        <p>Second year, one classroom, and you — the only girl who ever managed to handle the rest of us. That was, without a doubt, the best thing that happened to our class.</p>
-        <p>From skipping out to go chill between lectures, to cramming together right before every exam, those days built something that's stayed with me ever since.</p>
-        <p>I still remember our last semester — dropping you off, knowing you were leaving for home for good, and not being able to hold back the tears. That's still one of the most honest moments I've ever had.</p>
-        <p>And now here you are, about to start a whole new chapter — a wedding of your own on the horizon. I couldn't be happier for you. Genuinely, fully happier. Whatever comes next, I hope it brings you even a fraction of the joy you've brought into mine.</p>
+        <p>Second year, one classroom, and you, the only girl who ever managed to handle the rest of us. That was, without a doubt, the best thing that happened to our class.</p>
+        <p>From skipping out to go chill between lectures, to struggling together right before every exam, those days built something that's stayed with me ever since.</p>
+        <p>I still remember our last semester, dropping you off, knowing you were leaving for home for good, and not being able to hold back the tears. That's still one of the most honest moments I've ever had.</p>
+        <p>And now here you are, about to start a whole new chapter, a wedding of your own on the horizon. I couldn't be happier for you. Genuinely, fully happier. Whatever comes next, I hope it brings you even a fraction of the joy you've brought into mine.</p>
         <p class="signoff">Happy Birthday, Oye. Here's to everything ahead of you. 💛</p>
         <button class="glow-btn" data-action="next" onclick="next()">Our Memories</button>
         <div class="wait-msg">let that sink in for a second...</div>
@@ -543,9 +596,14 @@
   function turnOnLights(){
     document.getElementById('curtainBg').classList.add('on');
     document.getElementById('spotlight').classList.add('on');
-    const bulbs = document.querySelectorAll('.bulb');
-    bulbs.forEach((bulb, i)=>{
-      setTimeout(()=>bulb.classList.add('lit'), i * 45);
+    document.getElementById('lights').classList.add('on');
+    allBulbs.forEach((bulb, i)=>{
+      setTimeout(()=>{
+        const color = bulb.dataset.color;
+        bulb.style.background = color;
+        bulb.style.boxShadow = `0 0 16px 6px ${color}99`;
+        bulb.classList.add('lit');
+      }, i * 35);
     });
     next();
   }
@@ -560,7 +618,7 @@
       ['#a8d8cc','#5f9d8d','#356355'],
       ['#e6c8ea','#b070c2','#6e3b7e']
     ];
-    for(let i=0;i<20;i++){
+    for(let i=0;i<40;i++){
       const b = document.createElement('div');
       b.className = 'balloon';
       const left = Math.random()*100;
@@ -587,9 +645,9 @@
   }
 
   const captions = [
-    'Second year, one classroom — where it all started 💛',
+    'Second year, one classroom, where it all started 💛',
     'Skipping class just to go chill together',
-    'Cramming for exams, surviving on chai and each other',
+    'Our last farewell, number of memories and lots of pain',
     'The last semester... and the hardest goodbye',
     'Dropping you off, wishing that road was longer',
     'Always & Forever, Oye 💛'
@@ -632,17 +690,30 @@
     grid.appendChild(slot);
   }
 
-  const lightsEl = document.getElementById('lights');
-  const bulbCount = 30;
-  for(let i=0;i<bulbCount;i++){
-    const bulb = document.createElement('div');
-    bulb.className = 'bulb';
-    const x = (i/(bulbCount-1))*100;
-    const sag = Math.sin((i/(bulbCount-1))*Math.PI) * 22;
-    bulb.style.left = x + '%';
-    bulb.style.top = sag + 'px';
-    lightsEl.appendChild(bulb);
+  const bulbPalette = ['#e8b33d','#f0c97a','#e8875c','#f0a3b0'];
+  const allBulbs = [];
+
+  function buildGarland(rowEl, count, sagAmp, sagOffset, baseSize){
+    for(let i=0;i<count;i++){
+      const bulb = document.createElement('div');
+      bulb.className = 'bulb';
+      const x = (i/(count-1))*100;
+      const sag = sagOffset + Math.sin((i/(count-1))*Math.PI) * sagAmp;
+      const color = bulbPalette[Math.floor(Math.random()*bulbPalette.length)];
+      const size = baseSize + Math.random()*2;
+      bulb.style.left = x + '%';
+      bulb.style.top = sag + 'px';
+      bulb.style.width = size + 'px';
+      bulb.style.height = size + 'px';
+      bulb.dataset.color = color;
+      bulb.style.animationDuration = (1.8 + Math.random()*2.6) + 's';
+      bulb.style.animationDelay = (Math.random()*3) + 's';
+      rowEl.appendChild(bulb);
+      allBulbs.push(bulb);
+    }
   }
+  buildGarland(document.getElementById('lightsRow1'), 24, 22, 6, 10);
+  buildGarland(document.getElementById('lightsRow2'), 20, 26, 18, 9);
 
   const heartLayer = document.getElementById('heartLayer');
   function spawnHeart(){
@@ -662,6 +733,53 @@
   }
   setInterval(spawnHeart, 500);
   spawnHeart();
+
+  // Bokeh-style blue/purple hearts, blurred and glowing, drifting upward like the reference photo
+  const bokehLayer = document.getElementById('bokehLayer');
+  const bokehPalette = ['#5b6ee8','#7a5cf0','#4a7bf0','#8f6cf5','#5aa0f5','#6b5bd6'];
+  function spawnBokehHeart(){
+    const h = document.createElement('div');
+    h.className = 'bokeh-heart';
+    h.textContent = '♥';
+    const left = Math.random()*100;
+    const size = 22 + Math.random()*40;
+    const dur = 9 + Math.random()*8;
+    const delay = Math.random()*3;
+    const drift = (Math.random()*100 - 50) + 'px';
+    const color = bokehPalette[Math.floor(Math.random()*bokehPalette.length)];
+    h.style.left = left + '%';
+    h.style.fontSize = size + 'px';
+    h.style.color = color;
+    h.style.textShadow = `0 0 18px ${color}, 0 0 32px ${color}`;
+    h.style.setProperty('--bdrift', drift);
+    h.style.animationDuration = `${dur}s, 3.4s`;
+    h.style.animationDelay = `${delay}s, ${delay}s`;
+    bokehLayer.appendChild(h);
+    setTimeout(()=>h.remove(), (dur+delay)*1000 + 500);
+  }
+  setInterval(spawnBokehHeart, 650);
+  spawnBokehHeart();
+
+  // Twinkling stars scattered across the background
+  const starLayer = document.getElementById('starLayer');
+  function spawnStar(){
+    const s = document.createElement('div');
+    s.className = 'star';
+    const top = Math.random()*100;
+    const left = Math.random()*100;
+    const size = 2 + Math.random()*3;
+    const dur = 1.8 + Math.random()*2.6;
+    const delay = Math.random()*2;
+    s.style.top = top + '%';
+    s.style.left = left + '%';
+    s.style.width = size + 'px';
+    s.style.height = size + 'px';
+    s.style.animationDuration = dur + 's';
+    s.style.animationDelay = delay + 's';
+    starLayer.appendChild(s);
+  }
+  for(let i=0;i<40;i++){ spawnStar(); }
+
   function playSong(){
     document.getElementById('birthdaySong').play();
   }
